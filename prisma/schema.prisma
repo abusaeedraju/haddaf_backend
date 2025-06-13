@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  email             String          @unique
+  name              String
+  phone             String?
+  dateOfBirth       String?
+  yearsOfExperience Int?
+  nid               Int?
+  role              Role
+  status            Status          @default(PENDING)
+  password          String
+  fcmToken          String?
+  image             String?
+  certificate       String?
+  aboutMe           String?
+  isVerified        Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  receiver          Notifications[] @relation("receiverDetails")
+  sender            Notifications[] @relation("senderDetails")
+  playerReviews     Review[]        @relation("playerDetails")
+  trainerReviews    Review[]        @relation("trainerDetails")
+  booking           Booking[]       @relation("userDetails")
+}
+
+model Otp {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  email     String    @unique
+  otp       Int
+  expiry    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("otps")
+}
+
+model Ground {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  name          String     @unique
+  description   String
+  rent          Float
+  image         String?
+  facilities    String[]
+  features      String[]
+  timeSlots     String[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  groundReviews Review[]   @relation("groundDetails")
+  //timeSlots     TimeSlot[] @relation("PlaygroundTimeSlots") // One-to-many relation with TimeSlot
+}
+
+model TimeSlot {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  startTime  DateTime
+  endTime    DateTime
+  groundId   String    @db.ObjectId
+// playground Ground    @relation("PlaygroundTimeSlots", fields: [groundId], references: [id])
+  bookings   Booking[] @relation("TimeSlotBookings") // One-to-many relation with Booking
+}
+
+model Booking {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId // The ID of the user who made the booking
+  timeSlotId   String   @db.ObjectId // The ID of the booked time slot
+  playgroundId String   @db.ObjectId // The ID of the playground
+  status       String   @default("booked") // Status of the booking (e.g., booked, canceled)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  timeSlot     TimeSlot @relation("TimeSlotBookings", fields: [timeSlotId], references: [id])
+  user         User     @relation("userDetails", fields: [userId], references: [id]) // User who booked the slot
+}
+
+model Review {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  playerId       String   @db.ObjectId
+  groundId       String   @db.ObjectId
+  trainerId      String   @db.ObjectId
+  rating         Float
+  comment        String?
+  playerDetails  User     @relation("playerDetails", fields: [playerId], references: [id])
+  trainerDetails User     @relation("trainerDetails", fields: [trainerId], references: [id])
+  groundDetails  Ground   @relation("groundDetails", fields: [groundId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Notifications {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  receiverId String   @db.ObjectId
+  senderId   String?  @db.ObjectId
+  title      String
+  body       String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  receiver   User     @relation("receiverDetails", fields: [receiverId], references: [id])
+  sender     User?    @relation("senderDetails", fields: [senderId], references: [id])
+}
+
+enum Role {
+  PLAYER
+  TRAINER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  BLOCKED
+}
