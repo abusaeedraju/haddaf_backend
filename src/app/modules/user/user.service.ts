@@ -82,8 +82,8 @@ const changePasswordIntoDB = async (id: string, payload: any) => {
 const updateUserIntoDB = async (id: string, payload: any, profileImage: any, certificate: any) => {
 
 
-    const userImage = await getImageUrl(profileImage)
-    const certificateImage = await getImageUrl(certificate)
+    const userImage = profileImage && await getImageUrl(profileImage)
+    const certificateImage = certificate && await getImageUrl(certificate)
 
     try {
         const result = await prisma.user.update({
