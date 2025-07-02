@@ -68,9 +68,9 @@ const declineBooking = async (bookingId: string) => {
 const getAllBookings = async () => {
 
     const booking = prisma.booking.findMany({})
-    if(!booking){
+    if (!booking) {
         throw new ApiError(StatusCodes.NOT_FOUND, "No bookings found")
-    }else{
+    } else {
         return booking
     }
 }
@@ -79,11 +79,17 @@ const getFriends = async () => {
     const result = prisma.user.findMany({
         where: {
             role: "PLAYER"
+        },
+        select: {
+            id: true,
+            name: true,
+            image: true,
+            phone: true,
         }
     })
-    if(!result){
+    if (!result) {
         throw new ApiError(StatusCodes.NOT_FOUND, "No friends found")
-    }else{
+    } else {
         return result
     }
 }
@@ -94,13 +100,13 @@ const searchFriends = async (phone: string) => {
             phone
         }
     })
-    if(!result){
+    if (!result) {
         throw new ApiError(StatusCodes.NOT_FOUND, "No friends found")
-    }else{
-        const {password,fcmToken, ...others} = result
+    } else {
+        const { password, fcmToken, ...others } = result
         return others
     }
 }
 export const bookingServices = {
-    createBooking, acceptBooking, declineBooking, getAllBookings,getFriends,searchFriends
+    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, searchFriends
 }
