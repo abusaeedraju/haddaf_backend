@@ -51,13 +51,21 @@ export const getImageUrl = async (file: Express.MulterS3.File) => {
   return image;
 };
 
+export const getImageUrls = async(files: Express.MulterS3.File[]) => {
+  return files.map((file) => {
+    let image = file?.location;
+    if (!image || !image.startsWith("http")) {
+      image = `https://${process.env.DO_SPACE_BUCKET}.nyc3.digitaloceanspaces.com/${file?.key}`;
+    }
+       return image;
+    });
+}
 // Single image uploads
 const uploadProfileImage = upload.single("profileImage");
 const uploadCertificate = upload.single("certificate");
 
 const userUpload = upload.fields([
-  { name: "profileImage", maxCount: 1 },
-  { name: "certificate", maxCount: 1 },
+  { name: "memoryImage", maxCount: 5 },
 ]);
 
 const serviceImage = upload.single("serviceImage");
