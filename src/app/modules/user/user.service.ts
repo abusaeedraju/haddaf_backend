@@ -9,14 +9,13 @@ import { getImageUrl } from "../../helper/uploadFile";
 import { prisma } from "../../../utils/prisma";
 import { jwtHelpers } from "../../helper/jwtHelper";
 
-const createUserIntoDB = async (payload: User) => {
+const createUserIntoDB = async (payload: User, profileImage: any, certificateImage: any) => {
 
     const findUser = await prisma.user.findUnique({
         where: {
             email: payload.email
         }
     })
-    console.log(findUser);
     if (findUser && findUser?.isVerified) {
         throw new ApiError(StatusCodes.NOT_FOUND, "User already exists")
     }
@@ -24,13 +23,16 @@ const createUserIntoDB = async (payload: User) => {
         await OTPFn(payload.email)
         return
     }
-
+    const profile = profileImage && await getImageUrl(profileImage)
+    const certificate = certificateImage && await getImageUrl(certificateImage)
     const newPass = await hash(payload.password, 10)
 
     const result = await prisma.user.create({
         data: {
             ...payload,
             password: newPass,
+            image: profile,
+            certificate: certificate
         },
         select: {
             id: true,
@@ -59,10 +61,10 @@ const changePasswordIntoDB = async (id: string, payload: any) => {
         throw new ApiError(StatusCodes.NOT_FOUND, "User not found")
     }
     try {
-      const isMatch =  await compare(payload.oldPassword, findUser.password)
-      if(!isMatch){
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Old password is incorrect")
-      }
+        const isMatch = await compare(payload.oldPassword, findUser.password)
+        if (!isMatch) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Old password is incorrect")
+        }
         const newPass = await hash(payload.newPassword, 10)
         await prisma.user.update({
             where: {
@@ -93,12 +95,12 @@ const updateUserIntoDB = async (id: string, payload: any, profileImage: any, cer
             data: {
                 ...payload,
                 image: userImage ?? undefined,
-                certificate: certificateImage ?? undefined 
+                certificate: certificateImage ?? undefined
             },
-            
+
         })
-        const {password,fcmToken, ...others} = result
-    
+        const { password, fcmToken, ...others } = result
+
         return others
 
     } catch (error) {
@@ -119,6 +121,12 @@ const getMyProfile = async (id: string) => {
             email: true,
             image: true,
             role: true,
+            certificate: true,
+            phone: true,
+            dateOfBirth: true,
+            aboutMe: true,
+            yearsOfExperience: true,
+            nid: true,
             createdAt: true,
             updatedAt: true
         }

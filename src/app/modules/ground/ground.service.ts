@@ -3,7 +3,7 @@ import { prisma } from './../../../utils/prisma';
 const getGround = async () => {
     const isGround = await prisma.ground.findUnique({
         where: {
-            name: "Ground 1"
+            name: "Haddaf Ground"
         }
     })
     if (isGround) {
@@ -11,11 +11,11 @@ const getGround = async () => {
     }
     else {
         const ground = {
-            name: "Ground 1",
-            description: "Ground 1 description",
+            name: "Haddaf Ground",
+            description: "The biggest and the most famous national football tournament is The Hover football tournament Cup.",
             rent: 30,
-            facilities: ["Basketball", "Tennis", "Badminton"],
-            features: ["Swimming Pool", "Gym", "Playground"],
+            facilities: ["Parking Space", "Camera", "Waiting room","Changing rooms"],
+            features: ["Hiring Partners", "Miniature Field", "Grass Pitch","Outdoor / Indoor","Natural Grass Pitch"],
             timeSlots: [
                 "6:30 AM", "8:00 AM", "9:30 AM", "11:00 AM", "12:30 PM",
                 "2:00 PM", "3:30 PM", "5:00 PM", "6:30 PM", "8:00 PM",

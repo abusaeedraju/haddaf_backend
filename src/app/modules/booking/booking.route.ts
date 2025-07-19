@@ -27,6 +27,9 @@ route.get(
     bookingController.getAllBookings
 );
 
+route.get("/upcoming", auth(), bookingController.upcomingBookings);
+route.get("/details/:bookingId", auth(), bookingController.viewBookingDetails);
+
 route.get("/get-friend-list", auth(Role.PLAYER), bookingController.getFriends);
 route.get("/search-friend", auth(Role.PLAYER), bookingController.searchFriends);
 

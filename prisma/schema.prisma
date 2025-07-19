@@ -56,26 +56,28 @@ model Ground {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   groundReviews Review[] @relation("groundDetails")
-  events        event[]  @relation("groundDetails")
-}
+  booking       Booking[] @relation("groundDetails")
+  }
 
 model Booking {
   id          String        @id @default(auto()) @map("_id") @db.ObjectId
   userId      String        @db.ObjectId // The ID of the user who made the booking
   groundId    String        @db.ObjectId // The ID of the playground
-  date        Int
+  date        String
   startTime   String
   bookingCode Int
   status      bookingStatus @default(PENDING) // Status of the booking (e.g., booked, canceled)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  user        User          @relation("userDetails", fields: [userId], references: [id]) // User who booked the slot
+  ground      Ground        @relation("groundDetails", fields: [groundId], references: [id],onDelete: Cascade)
+  user        User          @relation("userDetails", fields: [userId], references: [id],onDelete: Cascade) // User who booked the slot
 }
 
 model event {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   eventName             String
   aboutEvent            String
+  groundName            String
   lastDayOfRegistration String
   entryFee              Float
   tournamentStartDate   String
@@ -84,10 +86,9 @@ model event {
   totalTeam             Int
   totalMatch            Int
   priceMoney            Int
+  groundImage           String
   previousMemoryImage   Json[]
   tournnamentRules      Json[]
-  groundId              String   @db.ObjectId // The ID of the playground
-  groundDetails         Ground   @relation("groundDetails", fields: [groundId], references: [id], onDelete: Cascade)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
@@ -98,8 +99,8 @@ model Review {
   groundId      String   @db.ObjectId
   rating        Float
   comment       String?
-  userDetails   User     @relation("userDetails", fields: [userId], references: [id])
-  groundDetails Ground   @relation("groundDetails", fields: [groundId], references: [id])
+  userDetails   User     @relation("userDetails", fields: [userId], references: [id],onDelete: Cascade)
+  groundDetails Ground   @relation("groundDetails", fields: [groundId], references: [id],onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -113,8 +114,8 @@ model Notifications {
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  receiver   User     @relation("receiverDetails", fields: [receiverId], references: [id])
-  sender     User?    @relation("senderDetails", fields: [senderId], references: [id])
+  receiver   User     @relation("receiverDetails", fields: [receiverId], references: [id] ,onDelete: Cascade  )
+  sender     User?    @relation("senderDetails", fields: [senderId], references: [id],onDelete: Cascade)
 }
 
 enum Role {

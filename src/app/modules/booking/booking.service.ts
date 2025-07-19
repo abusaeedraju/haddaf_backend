@@ -65,6 +65,8 @@ const declineBooking = async (bookingId: string) => {
     return booking
 }
 
+
+
 const getAllBookings = async () => {
 
     const booking = prisma.booking.findMany({})
@@ -74,6 +76,129 @@ const getAllBookings = async () => {
         return booking
     }
 }
+
+// const upcomingBookings = async () => {
+//     const booking = await prisma.booking.findMany({
+//         select: {
+//             id: true,
+//             ground: {
+//                 select: {
+//                     name: true,
+//                     image: true
+//                 }
+//             },
+//             date: true,
+//             startTime: true,
+//             createdAt: true,
+//             updatedAt: true,
+//         }
+//     });
+
+//     const today = new Date();
+
+//     // 2. Filter for upcoming booking only (future dates)
+//     const upcomingEvents = booking.filter(booking => {
+//         const startDate = new Date(booking.date);
+//         return startDate >= today;
+//     });
+
+//     // 3. Sort upcoming events by start date (ascending)
+//     upcomingEvents.sort((a, b) => {
+//         return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+//     });
+//     return upcomingEvents
+// }
+
+
+// export const upcomingBookings = async () => {
+//     const allBookings = await prisma.booking.findMany({
+//         include: {
+//             ground: {
+//                 select: {
+//                     name: true,
+//                     rent: true,
+//                     image: true
+//                 }
+//             }
+//         }
+//     });
+
+//     const now = new Date();
+//     // Filter for upcoming booking only (future dates)
+//     const upcomingEvents = allBookings.filter(booking => {
+//         const startDate = new Date(booking.date);
+//         return startDate >= now;
+//     });
+//     // 3. Sort upcoming events by start date (ascending)
+//     upcomingEvents.sort((a, b) => {
+//         return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+//     });
+//     return upcomingEvents
+
+// };
+
+export const upcomingBookings = async () => {
+    const allBookings = await prisma.booking.findMany({
+        select: {
+            id: true,
+            date: true,
+            startTime: true,
+            ground: {
+                select: {
+                    name: true,
+                    rent: true,
+                    image: true
+                }
+            },
+        }
+    });
+
+    const now = new Date();
+
+    const upcomingEvents = allBookings
+        .map((booking) => {
+            const dateTimeString = `${booking.date} ${booking.startTime}`; // e.g., "22 July 2025 3:30 PM"
+            const parsedDate = new Date(dateTimeString);
+
+            return {
+                ...booking,
+                fullDateTime: parsedDate, // attach parsed datetime for comparison/sorting
+            };
+        })
+        .filter((booking) => booking.fullDateTime > now)
+        .sort((a, b) => a.fullDateTime.getTime() - b.fullDateTime.getTime());
+
+    return upcomingEvents;
+};
+
+const viewBookingDetails = async (bookingId: string) => {
+    const booking = await prisma.booking.findUnique({
+        where: {
+            id: bookingId
+        },
+        select: {
+            id: true,
+            date: true,
+            startTime: true,
+            bookingCode: true,
+            ground: {
+                select: {
+                    name: true,
+                    rent: true,
+                    image: true
+                }
+            }
+        }
+    })
+    if (!booking) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found")
+    } else {
+        return booking
+    }
+}
+
+
+
 const getFriends = async () => {
 
     const result = prisma.user.findMany({
@@ -108,5 +233,5 @@ const searchFriends = async (phone: string) => {
     }
 }
 export const bookingServices = {
-    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, searchFriends
+    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, searchFriends, upcomingBookings, viewBookingDetails   
 }

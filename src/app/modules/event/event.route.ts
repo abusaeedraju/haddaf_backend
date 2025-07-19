@@ -8,3 +8,8 @@ import { eventController } from "./event.controller";
 const router = Router()
 
 router.post('/create', auth(Role.ADMIN), fileUploader.userUpload, parseBodyMiddleware, eventController.createEventController) 
+router.get('/all', auth(Role.ADMIN), eventController.getAllEventsController)
+router.get('/upcoming', auth(), eventController.getUpcomingEventsController)
+router.get('/details/:eventId', auth(), eventController.getEventByIdController)
+
+export const eventRoutes = router
