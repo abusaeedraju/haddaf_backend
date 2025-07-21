@@ -37,4 +37,9 @@ const getMyProfileController = catchAsync(async (req: Request, res: Response) =>
     sendResponse(res, { statusCode: StatusCodes.OK, message: "User profile retrieved successfully", data: result, success: true })
 })
 
-export const userController = { createUserController, updateUserController, changePasswordController, getMyProfileController }
+const getAllUserController = catchAsync(async (req: Request, res: Response) => {
+    const result = await userServices.getAllUser()
+    sendResponse(res, { statusCode: StatusCodes.OK, message: "User retrieved successfully", data: result, success: true })
+})
+
+export const userController = { createUserController, updateUserController, changePasswordController, getMyProfileController, getAllUserController }

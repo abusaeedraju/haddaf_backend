@@ -16,4 +16,6 @@ route.put('/change-password', auth(), validateRequest(UserValidation.changePassw
 route.put("/me",auth(), fileUploader.userUpload, parseBodyMiddleware, userController.updateUserController)
 route.get("/me",auth() ,userController.getMyProfileController)
 
-export const userRoutes = route
+route.get("/all",auth(Role.ADMIN) ,userController.getAllUserController)
+
+export const userRoutes = route 

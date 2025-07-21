@@ -135,5 +135,25 @@ const getMyProfile = async (id: string) => {
     return result
 }
 
+const getAllUser = async () => {
+    const result = await prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            role: true,
+            certificate: true,
+            phone: true,
+            dateOfBirth: true,
+            aboutMe: true,
+            yearsOfExperience: true,
+            nid: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    })
+    return result
+}
 
-export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile }
+export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser }

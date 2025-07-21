@@ -186,59 +186,123 @@ const getFriends = async (phone: string) => {
     })
     return result
 }
-const sendInvitaion = async (playerId: string, userId: string, bookingId: string) => {
+const sendInvitation = async (playerId: string, userId: string, bookingId: string) => {
     const player = await prisma.user.findUnique({
-        where: {
-            id: playerId
-        }
-    })
+      where: { id: playerId }
+    });
+  
     if (!player) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "Player not found")
+      throw new ApiError(StatusCodes.NOT_FOUND, "Player not found");
     }
-
-    const booking = await prisma.booking.findUnique({
-        where: {
-            id: bookingId,
-            userId
-        }
-    })
-    if (!booking) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found")
+  
+    const booking: any = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true } // so you can access booking.user.name for notification
+    });
+  
+    if (!booking || booking.userId !== userId) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found or unauthorized");
     }
-    const existingPlayers = booking.players
-    if (existingPlayers.includes(playerId)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Player already invited")
+  
+    const newPlayer = {
+      id: playerId,
+      name: player.name,
+      image: player.image,
+      phone: player.phone,
+      role: player.role,
+      status: "PENDING"
+    };
+  
+    let players: any[] = Array.isArray(booking.players)
+      ? booking.players
+      : typeof booking.players === "string"
+      ? JSON.parse(booking.players)
+      : [];
+  
+    const exists = players.some((p: any) => p.id === playerId);
+    if (exists) {
+      return booking.players; // already invited
     }
+  
+    players.push(newPlayer);
+  
     await prisma.booking.update({
-        where: {
-            id: bookingId
-        },
-        data: {
-            players: {
-                push: playerId
-            }
-        }
-    })
+      where: { id: bookingId },
+      data: { players }
+    });
+  
+    await notificationServices.sendSingleNotification(userId, playerId, {
+      title: "Match Invitation",
+      body: `You have been invited to play with your friends ${booking.user.name}`,
+      bookingId
+    });
+  
+    return booking.players;
+  };
+  
 
-    await notificationServices.sendSingleNotification(playerId, bookingId, {
-        title: "Invitation",
-        body: "You have been invited to play with your friends",
-        type: "INVITATION",
-        payload: {
-            bookingId,
-            userId,
-            playerId
-        }
-    })
-
-    return {
-        Status: "PENDING"
+  const respondToInvitation = async (
+    userId: string,
+    payload: { bookingId: string; status: "ACCEPTED" | "DECLINED" }
+  ) => {
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+  
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
-}
-
-
+  
+    const booking = await prisma.booking.findUnique({
+      where: { id: payload.bookingId }
+    });
+  
+    if (!booking) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found");
+    }
+  
+    let players: any[] = Array.isArray(booking.players)
+      ? booking.players
+      : typeof booking.players === "string"
+      ? JSON.parse(booking.players)
+      : [];
+  
+    // Find if player exists
+    const index = players.findIndex(p => p.id === userId);
+    if (index === -1) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Player not found in this booking");
+    }
+  
+    // If ACCEPTED → update status
+    if (payload.status === "ACCEPTED") {
+      players[index].status = "INVITED";
+  
+      await prisma.booking.update({
+        where: { id: payload.bookingId },
+        data: { players }
+      });
+  
+      return players[index];
+    }
+  
+    // If DECLINED → remove the player
+    if (payload.status === "DECLINED") {
+      const updatedPlayers = players.filter(p => p.id !== userId);
+  
+      await prisma.booking.update({
+        where: { id: payload.bookingId },
+        data: { players: updatedPlayers }
+      });
+  
+      return {status: "DECLINED"}
+    }
+  
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid status value");
+  };
+  
+  
 
 
 export const bookingServices = {
-    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitaion, getMyBooking
+    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation
 }

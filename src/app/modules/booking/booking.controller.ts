@@ -84,8 +84,8 @@ const getFriends = catchAsync(async (req: any, res: any) => {
         data: result,
     });
 })
-const sendInvitaion = catchAsync(async (req: any, res: any) => {
-    const result = await bookingServices.sendInvitaion(req.query.playerId,req.user.id,req.query.bookingId);
+const sendInvitation = catchAsync(async (req: any, res: any) => {
+    const result = await bookingServices.sendInvitation(req.query.playerId, req.user.id, req.query.bookingId);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -94,4 +94,16 @@ const sendInvitaion = catchAsync(async (req: any, res: any) => {
     });
 })
 
-export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings,getFriends,upcomingBookings,viewBookingDetails,sendInvitaion,getMyBooking }
+const respondToInvitation = catchAsync(async (req: any, res: any) => {
+    const userId = req.user.id
+    const payload = req.body
+    const result = await bookingServices.respondToInvitation(userId, payload);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Invitation accepted successfully",
+        data: result,
+    });
+})
+
+export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation }

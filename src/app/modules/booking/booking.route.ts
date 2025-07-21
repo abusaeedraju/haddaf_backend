@@ -26,6 +26,7 @@ route.get("/upcoming", auth(), bookingController.upcomingBookings);
 route.get("/details/:bookingId", auth(), bookingController.viewBookingDetails);
 
 route.get("/get-friend-list", auth(Role.PLAYER), bookingController.getFriends);
-route.put("/send-invitation", auth(Role.PLAYER), bookingController.sendInvitaion);
+route.put("/send-invitation", auth(Role.PLAYER), bookingController.sendInvitation);
+route.put("/respond-to-invitation", auth(Role.PLAYER), bookingController.respondToInvitation);
 
-export const bookingRoutes = route
+export const bookingRoutes = route  

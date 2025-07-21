@@ -23,7 +23,7 @@ const sendSingleNotification = async (
       senderId: senderId,
       title: payload.title,
       body: payload.body,
-      payload: payload
+      bookingId: payload?.bookingId,
     },
   });
 
@@ -135,20 +135,15 @@ const getNotificationsFromDB = async (req: any) => {
   return notifications;
 };
 
-const isReadNotificationFromDB = async(id : string)=>{
-  const notifications = await prisma.notifications.findUnique({
+const isReadNotificationFromDB = async (id: string) => {
+  const notification = await prisma.notifications.findUnique({
     where: {
       id: id,
-      read: false,
-    },
-    select: {
-      id: true,
-      payload: true,
-      createdAt: true,
-    },
+      //read: false,
+    }
   });
 
-  if (!notifications) {
+  if (!notification) {
     throw new ApiError(404, "No unread notifications found for the user");
   }
 
@@ -156,8 +151,16 @@ const isReadNotificationFromDB = async(id : string)=>{
     where: { id: id },
     data: { read: true },
   });
-
-  return notifications;
+  const sender = await prisma.user.findFirst({
+    where: {
+      id: notification?.senderId as string,
+    },
+    select: {
+      name: true,
+      image: true,
+    },
+  });
+  return { notification, sender };
 }
 
 export const notificationServices = {
