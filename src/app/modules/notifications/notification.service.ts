@@ -23,6 +23,7 @@ const sendSingleNotification = async (
       senderId: senderId,
       title: payload.title,
       body: payload.body,
+      payload: payload
     },
   });
 
@@ -117,6 +118,13 @@ const getNotificationsFromDB = async (req: any) => {
     where: {
       receiverId: req.user.id,
     },
+    select: {
+      id: true,
+      title: true,
+      body: true,
+      read: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -132,6 +140,11 @@ const isReadNotificationFromDB = async(id : string)=>{
     where: {
       id: id,
       read: false,
+    },
+    select: {
+      id: true,
+      payload: true,
+      createdAt: true,
     },
   });
 

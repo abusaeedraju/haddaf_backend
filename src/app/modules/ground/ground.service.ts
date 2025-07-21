@@ -7,7 +7,17 @@ const getGround = async () => {
         }
     })
     if (isGround) {
-        return isGround
+        const bookedSlots = await prisma.booking.findMany({
+            where: {
+                groundId: isGround.id
+            },
+            select: {
+                id: true,
+                date: true,
+                startTime: true,
+            }
+        })
+        return {isGround,bookedSlots}
     }
     else {
         const ground = {

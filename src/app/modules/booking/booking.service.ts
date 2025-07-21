@@ -1,6 +1,8 @@
 import { StatusCodes } from "http-status-codes"
 import { prisma } from "../../../utils/prisma"
 import ApiError from "../../error/ApiErrors"
+import { notificationServices } from "../notifications/notification.service"
+import { inviteStatus } from "@prisma/client"
 
 const createBooking = async (groundId: string, userId: string, payload: any) => {
 
@@ -77,65 +79,14 @@ const getAllBookings = async () => {
     }
 }
 
-// const upcomingBookings = async () => {
-//     const booking = await prisma.booking.findMany({
-//         select: {
-//             id: true,
-//             ground: {
-//                 select: {
-//                     name: true,
-//                     image: true
-//                 }
-//             },
-//             date: true,
-//             startTime: true,
-//             createdAt: true,
-//             updatedAt: true,
-//         }
-//     });
-
-//     const today = new Date();
-
-//     // 2. Filter for upcoming booking only (future dates)
-//     const upcomingEvents = booking.filter(booking => {
-//         const startDate = new Date(booking.date);
-//         return startDate >= today;
-//     });
-
-//     // 3. Sort upcoming events by start date (ascending)
-//     upcomingEvents.sort((a, b) => {
-//         return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-//     });
-//     return upcomingEvents
-// }
-
-
-// export const upcomingBookings = async () => {
-//     const allBookings = await prisma.booking.findMany({
-//         include: {
-//             ground: {
-//                 select: {
-//                     name: true,
-//                     rent: true,
-//                     image: true
-//                 }
-//             }
-//         }
-//     });
-
-//     const now = new Date();
-//     // Filter for upcoming booking only (future dates)
-//     const upcomingEvents = allBookings.filter(booking => {
-//         const startDate = new Date(booking.date);
-//         return startDate >= now;
-//     });
-//     // 3. Sort upcoming events by start date (ascending)
-//     upcomingEvents.sort((a, b) => {
-//         return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-//     });
-//     return upcomingEvents
-
-// };
+const getMyBooking = async (userId: string) => {
+    const booking = prisma.booking.findMany({
+        where: {
+            userId
+        }
+    })
+    return booking
+}
 
 export const upcomingBookings = async () => {
     const allBookings = await prisma.booking.findMany({
@@ -199,7 +150,27 @@ const viewBookingDetails = async (bookingId: string) => {
 
 
 
-const getFriends = async () => {
+const getFriends = async (phone: string) => {
+
+    if (phone) {
+        const result = await prisma.user.findFirst({
+            where: {
+                phone,
+                role: "PLAYER"
+            },
+            select: {
+                id: true,
+                name: true,
+                image: true,
+                phone: true,
+                role: true
+            }
+        })
+        if (!result) {
+            throw new ApiError(StatusCodes.NOT_FOUND, "User not found")
+        }
+        return result
+    }
 
     const result = prisma.user.findMany({
         where: {
@@ -210,28 +181,64 @@ const getFriends = async () => {
             name: true,
             image: true,
             phone: true,
+            role: true
         }
     })
-    if (!result) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "No friends found")
-    } else {
-        return result
-    }
+    return result
 }
-const searchFriends = async (phone: string) => {
-
-    const result = await prisma.user.findFirst({
+const sendInvitaion = async (playerId: string, userId: string, bookingId: string) => {
+    const player = await prisma.user.findUnique({
         where: {
-            phone
+            id: playerId
         }
     })
-    if (!result) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "No friends found")
-    } else {
-        const { password, fcmToken, ...others } = result
-        return others
+    if (!player) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Player not found")
+    }
+
+    const booking = await prisma.booking.findUnique({
+        where: {
+            id: bookingId,
+            userId
+        }
+    })
+    if (!booking) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found")
+    }
+    const existingPlayers = booking.players
+    if (existingPlayers.includes(playerId)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Player already invited")
+    }
+    await prisma.booking.update({
+        where: {
+            id: bookingId
+        },
+        data: {
+            players: {
+                push: playerId
+            }
+        }
+    })
+
+    await notificationServices.sendSingleNotification(playerId, bookingId, {
+        title: "Invitation",
+        body: "You have been invited to play with your friends",
+        type: "INVITATION",
+        payload: {
+            bookingId,
+            userId,
+            playerId
+        }
+    })
+
+    return {
+        Status: "PENDING"
     }
 }
+
+
+
+
 export const bookingServices = {
-    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, searchFriends, upcomingBookings, viewBookingDetails   
+    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitaion, getMyBooking
 }

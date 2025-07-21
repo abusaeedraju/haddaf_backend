@@ -45,6 +45,15 @@ const getAllBookings = catchAsync(async (req: any, res: any) => {
     });
 })
 
+const getMyBooking = catchAsync(async (req: any, res: any) => {
+    const result = await bookingServices.getMyBooking(req.user.id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "My bookings retrieved successfully",
+        data: result,
+    });
+})
 const upcomingBookings = catchAsync(async (req: any, res: any) => {
     const result = await bookingServices.upcomingBookings();
     sendResponse(res, {
@@ -67,7 +76,7 @@ const viewBookingDetails = catchAsync(async (req: any, res: any) => {
 })
 
 const getFriends = catchAsync(async (req: any, res: any) => {
-    const result = await bookingServices.getFriends();
+    const result = await bookingServices.getFriends(req.query.phone);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -75,15 +84,14 @@ const getFriends = catchAsync(async (req: any, res: any) => {
         data: result,
     });
 })
-const searchFriends = catchAsync(async (req: any, res: any) => {
-    const {phone}  = req.body
-    console.log(phone);
-    const result = await bookingServices.searchFriends(phone);
+const sendInvitaion = catchAsync(async (req: any, res: any) => {
+    const result = await bookingServices.sendInvitaion(req.query.playerId,req.user.id,req.query.bookingId);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
-        message: "Friends retrieved successfully",
+        message: "Invitation sent successfully",
         data: result,
     });
 })
-export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings,getFriends,searchFriends,upcomingBookings,viewBookingDetails }
+
+export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings,getFriends,upcomingBookings,viewBookingDetails,sendInvitaion,getMyBooking }

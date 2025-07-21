@@ -5,6 +5,8 @@ import { groundRoutes } from "../modules/ground/ground.route"
 import { bookingRoutes } from "../modules/booking/booking.route"
 import { reviewRoutes } from "../modules/review/review.routes"
 import { eventRoutes } from "../modules/event/event.route"
+import { NotificationsRouters } from "../modules/notifications/notification.routes"
+
 const router = Router()
 const routes = [
     {
@@ -30,6 +32,10 @@ const routes = [
     {
         path: "/event",
         component: eventRoutes
+    },
+    {
+        path: "/notification",
+        component: NotificationsRouters
     }
 ]
 

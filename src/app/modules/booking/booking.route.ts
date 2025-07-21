@@ -7,30 +7,25 @@ import { Role } from "@prisma/client";
 const route = express.Router();
 
 route.post(
-    "/request/:groundId",
-    auth(),
-    bookingController.createBooking
+    "/request/:groundId", auth(), bookingController.createBooking
 );
 route.put(
-    "/accept/:bookingId",
-    auth(Role.ADMIN),
-    bookingController.acceptBooking
+    "/accept/:bookingId", auth(Role.ADMIN), bookingController.acceptBooking
 );
 route.put(
-    "/decline/:bookingId",
-    auth(Role.ADMIN),
-    bookingController.declineBooking
+    "/decline/:bookingId", auth(Role.ADMIN), bookingController.declineBooking
 );
 route.get(
-    "/all-bookings",
-    auth(Role.ADMIN),
-    bookingController.getAllBookings
+    "/all-bookings", auth(Role.ADMIN), bookingController.getAllBookings
+);
+route.get(
+    "/me", auth(), bookingController.getMyBooking
 );
 
 route.get("/upcoming", auth(), bookingController.upcomingBookings);
 route.get("/details/:bookingId", auth(), bookingController.viewBookingDetails);
 
 route.get("/get-friend-list", auth(Role.PLAYER), bookingController.getFriends);
-route.get("/search-friend", auth(Role.PLAYER), bookingController.searchFriends);
+route.put("/send-invitation", auth(Role.PLAYER), bookingController.sendInvitaion);
 
 export const bookingRoutes = route

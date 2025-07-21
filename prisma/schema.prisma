@@ -66,6 +66,7 @@ model Booking {
   date        String
   startTime   String
   bookingCode Int
+  players     String[]      @default([])
   status      bookingStatus @default(PENDING) // Status of the booking (e.g., booked, canceled)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -111,6 +112,7 @@ model Notifications {
   senderId   String?  @db.ObjectId
   title      String
   body       String
+  payload    Json?
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -140,4 +142,10 @@ enum bookingStatus {
   PENDING
   BOOKED
   DECLINED
+}
+
+enum inviteStatus {
+  PENDING
+  INVITED
+  NONE
 }

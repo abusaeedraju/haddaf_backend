@@ -14,15 +14,31 @@ const createReview = async (id: string, payload: any) => {
 };
 
 const getReviews = async () => {
-    const result = await prisma.review.findMany()
-    const averageRating = await prisma.review.aggregate({
-        _avg: {
-            rating: true
+    const result = await prisma.review.findMany(
+        {
+            select: {
+                id: true,
+                rating: true,
+                comment: true,
+                userDetails: {
+                    select: {
+                        name: true,
+                        image: true
+                    }
+                },
+                createdAt:true
+            }
         }
+    )
+    const rating = await prisma.review.aggregate({
+        _avg: {
+            rating:true
+        },
+        _count:true
     })
-    return {result,averageRating}
+    return { result, rating }
 };
 
 export const reviewService = {
-    createReview,getReviews
+    createReview, getReviews
 };  
