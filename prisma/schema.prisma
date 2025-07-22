@@ -31,6 +31,7 @@ model User {
   sender            Notifications[] @relation("senderDetails")
   reviews           Review[]        @relation("userDetails")
   booking           Booking[]       @relation("userDetails")
+  registration      registration[]  @relation("playerIdDetails")
 }
 
 model Otp {
@@ -45,19 +46,19 @@ model Otp {
 }
 
 model Ground {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String   @unique
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String    @unique
   description   String
   rent          Float
   image         String?
   facilities    String[]
   features      String[]
   timeSlots     String[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  groundReviews Review[] @relation("groundDetails")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  groundReviews Review[]  @relation("groundDetails")
   booking       Booking[] @relation("groundDetails")
-  }
+}
 
 model Booking {
   id          String        @id @default(auto()) @map("_id") @db.ObjectId
@@ -66,16 +67,16 @@ model Booking {
   date        String
   startTime   String
   bookingCode Int
-  players     Json?     
+  players     Json?
   status      bookingStatus @default(PENDING) // Status of the booking (e.g., booked, canceled)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  ground      Ground        @relation("groundDetails", fields: [groundId], references: [id],onDelete: Cascade)
-  user        User          @relation("userDetails", fields: [userId], references: [id],onDelete: Cascade) // User who booked the slot
+  ground      Ground        @relation("groundDetails", fields: [groundId], references: [id], onDelete: Cascade)
+  user        User          @relation("userDetails", fields: [userId], references: [id], onDelete: Cascade) // User who booked the slot
 }
 
 model event {
-  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                    String         @id @default(auto()) @map("_id") @db.ObjectId
   eventName             String
   aboutEvent            String
   groundName            String
@@ -90,8 +91,29 @@ model event {
   groundImage           String
   previousMemoryImage   Json[]
   tournnamentRules      Json[]
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  registration          registration[] @relation("eventDetails")
+}
+
+model registration {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId          String   @db.ObjectId
+  playerId         String   @db.ObjectId
+  teamName         String
+  teamLeaderName   String
+  phone            String
+  email            String    @unique
+  registrationCode Int
+  entryFee         Float?
+  teamMembers      Json?
+  isVerified       Boolean @default(false)
+  isPaid           Boolean @default(false)
+  eventDetails     event    @relation("eventDetails", fields: [eventId], references: [id], onDelete: Cascade)
+  playerIdDetails  User     @relation("playerIdDetails", fields: [playerId], references: [id], onDelete: Cascade)
+  status registrationStatus @default(PENDING)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Review {
@@ -100,8 +122,8 @@ model Review {
   groundId      String   @db.ObjectId
   rating        Float
   comment       String?
-  userDetails   User     @relation("userDetails", fields: [userId], references: [id],onDelete: Cascade)
-  groundDetails Ground   @relation("groundDetails", fields: [groundId], references: [id],onDelete: Cascade)
+  userDetails   User     @relation("userDetails", fields: [userId], references: [id], onDelete: Cascade)
+  groundDetails Ground   @relation("groundDetails", fields: [groundId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -116,8 +138,8 @@ model Notifications {
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  receiver   User     @relation("receiverDetails", fields: [receiverId], references: [id] ,onDelete: Cascade  )
-  sender     User?    @relation("senderDetails", fields: [senderId], references: [id],onDelete: Cascade)
+  receiver   User     @relation("receiverDetails", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User?    @relation("senderDetails", fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -148,4 +170,10 @@ enum inviteStatus {
   PENDING
   INVITED
   NONE
+}
+
+enum registrationStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
 }

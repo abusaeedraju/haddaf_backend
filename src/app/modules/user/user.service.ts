@@ -41,6 +41,10 @@ const createUserIntoDB = async (payload: User, profileImage: any, certificateIma
             phone: true,
             role: true,
             dateOfBirth: true,
+            yearsOfExperience: true,
+            nid: true,
+            image: true,
+            certificate: true,
             status: true,
             createdAt: true,
             updatedAt: true
@@ -156,4 +160,25 @@ const getAllUser = async () => {
     return result
 }
 
-export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser }
+const getMyJoinedEvent = async (playerId: string) => {
+    const result = await prisma.registration.findMany({
+        where: {
+            playerId
+        },
+        select: {
+            eventDetails: {
+                select: {
+                    id: true,
+                    eventName: true,
+                    lastDayOfRegistration: true,
+                    createdAt: true,
+                    updatedAt: true
+                }
+            }
+        }
+    })
+    return result
+}
+    
+
+export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser, getMyJoinedEvent }

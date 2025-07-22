@@ -42,4 +42,10 @@ const getAllUserController = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, { statusCode: StatusCodes.OK, message: "User retrieved successfully", data: result, success: true })
 })
 
-export const userController = { createUserController, updateUserController, changePasswordController, getMyProfileController, getAllUserController }
+const getMyJoinedEventController = catchAsync(async (req: Request, res: Response) => {
+    const { userId } = req.user
+    const result = await userServices.getMyJoinedEvent(userId)
+    sendResponse(res, { statusCode: StatusCodes.OK, message: "User joined event retrieved successfully", data: result, success: true })
+})
+
+export const userController = { createUserController, updateUserController, changePasswordController, getMyProfileController, getAllUserController, getMyJoinedEventController }

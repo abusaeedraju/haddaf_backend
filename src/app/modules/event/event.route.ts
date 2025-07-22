@@ -11,5 +11,8 @@ router.post('/create', auth(Role.ADMIN), fileUploader.userUpload, parseBodyMiddl
 router.get('/all', auth(Role.ADMIN), eventController.getAllEventsController)
 router.get('/upcoming', auth(), eventController.getUpcomingEventsController)
 router.get('/details/:eventId', auth(), eventController.getEventByIdController)
+router.post('/register/:eventId', auth(), eventController.registerForEventController)
+router.post('/verify-otp', auth(), eventController.verifyOtpController)
+router.post('/add-player/:registrationId', auth(), eventController.addPlayerToEventController)
 
 export const eventRoutes = router

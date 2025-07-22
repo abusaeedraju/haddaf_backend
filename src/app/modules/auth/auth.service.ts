@@ -61,7 +61,7 @@ const logInFromDB = async (payload: {
 };
 
 const verifyOtp = async (payload: { email: string; otp: number }) => {
-  const { message} = await OTPVerify(payload);
+  const { message, accessToken } = await OTPVerify(payload);
 
   if (message) {
     const updateUserInfo = await prisma.user.update({
@@ -83,7 +83,7 @@ const verifyOtp = async (payload: { email: string; otp: number }) => {
         updatedAt: true,
       },
     });
-    return updateUserInfo;
+    return {accessToken, updateUserInfo};
   }
 };
 
