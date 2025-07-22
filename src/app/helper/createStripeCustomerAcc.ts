@@ -17,7 +17,7 @@ export const createStripeCustomerAcc = async (payload: any) => {
         );
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
         where: {
             id: payload.id
         },
@@ -25,4 +25,5 @@ export const createStripeCustomerAcc = async (payload: any) => {
             customerId: stripeCustomer.id
         }
     })
+    return updatedUser
 }

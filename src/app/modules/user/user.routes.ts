@@ -18,5 +18,6 @@ route.get("/me",auth() ,userController.getMyProfileController)
 
 route.get("/all",auth(Role.ADMIN) ,userController.getAllUserController)
 route.get("/my-joined-event",auth() ,userController.getMyJoinedEventController)
+route.get("/event-summary/:id",auth() ,userController.getEventSummaryController)
 
 export const userRoutes = route 

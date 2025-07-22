@@ -95,7 +95,16 @@ model event {
   updatedAt             DateTime       @updatedAt
   registration          registration[] @relation("eventDetails")
 }
-
+model Payment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  registrationId String   @db.ObjectId @unique
+  amount        Float
+  paymentMethod String?
+  paymentId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
 model registration {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
   eventId          String   @db.ObjectId
@@ -108,6 +117,7 @@ model registration {
   entryFee         Float?
   teamMembers      Json?
   isVerified       Boolean @default(false)
+  paymentId        String?
   isPaid           Boolean @default(false)
   eventDetails     event    @relation("eventDetails", fields: [eventId], references: [id], onDelete: Cascade)
   playerIdDetails  User     @relation("playerIdDetails", fields: [playerId], references: [id], onDelete: Cascade)

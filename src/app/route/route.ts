@@ -6,6 +6,7 @@ import { bookingRoutes } from "../modules/booking/booking.route"
 import { reviewRoutes } from "../modules/review/review.routes"
 import { eventRoutes } from "../modules/event/event.route"
 import { NotificationsRouters } from "../modules/notifications/notification.routes"
+import { paymentRoutes } from "../modules/payment/payment.routes"
 
 const router = Router()
 const routes = [
@@ -36,6 +37,10 @@ const routes = [
     {
         path: "/notification",
         component: NotificationsRouters
+    },
+    {
+        path: "/payment",
+        component: paymentRoutes
     }
 ]
 

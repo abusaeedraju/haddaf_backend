@@ -166,19 +166,46 @@ const getMyJoinedEvent = async (playerId: string) => {
             playerId
         },
         select: {
+            id: true,
+
             eventDetails: {
                 select: {
                     id: true,
                     eventName: true,
                     lastDayOfRegistration: true,
-                    createdAt: true,
-                    updatedAt: true
                 }
             }
         }
     })
     return result
 }
-    
 
-export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser, getMyJoinedEvent }
+const eventSummary = async (id: string) => {
+    const result = await prisma.registration.findUnique({
+        where: {
+            id
+        },
+        select: {
+            id: true,
+            registrationCode: true,
+            teamName: true,
+            status: true,
+            teamMembers:true,
+            eventDetails: {
+                select: {
+                    id: true,
+                    eventName: true,
+                    groundName: true,
+                    tournamentStartDate: true,
+                    tournamentStartTime: true,
+                }
+            }
+        }
+    })
+    const teamMemberCount = Array.isArray(result?.teamMembers)
+    ? result.teamMembers.length
+    : 0;
+    return { ...result, teamMemberCount }
+}
+
+export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser, getMyJoinedEvent, eventSummary }
