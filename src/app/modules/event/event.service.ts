@@ -158,7 +158,39 @@ const getAllCancelRequest = async () => {
     return cancelRequest;
 };
 
+const getAllRegistration = async () => {
+    const registration = await prisma.registration.findMany({
+        select: {
+            id: true,
+            teamName: true,
+            phone: true,
+            registrationCode: true,
+            createdAt: true,
+            status: true,
+            eventDetails: {
+                select: {
+                    id: true,
+                    eventName: true,
+                    tournamentStartDate: true,
+                    tournamentStartTime: true,
+                    groundName: true,
+                },
+            },
+            teamLeaderName: true,
+            email: true,
+            teamMembers: true,
+        },
+    });
+    const teamMemberCount = registration?.map((registration) => {
+        const teamMemberCount = Array.isArray(registration?.teamMembers)
+        ? registration.teamMembers.length
+        : 0;
+        return { ...registration, teamMemberCount };
+    });
+    return teamMemberCount;
+};
+
 export const eventServices = {
-    createEvent, getAllEvents, getEventById, getUpcomingEvents, registerForEvent, verifyOtp, addPlayerToEvent, cancelRequest, getAllCancelRequest
+    createEvent, getAllEvents, getEventById, getUpcomingEvents, registerForEvent, verifyOtp, addPlayerToEvent, cancelRequest, getAllCancelRequest, getAllRegistration
 }
 

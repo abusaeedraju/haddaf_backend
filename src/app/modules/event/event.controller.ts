@@ -69,6 +69,11 @@ const getAllCancelRequestController = catchAsync(async (req: Request, res: Respo
     sendResponse(res, { statusCode: StatusCodes.OK, message: "Cancel requests retrieved successfully", data: result, success: true })
 })
 
+const getAllRegistrationController = catchAsync(async (req: Request, res: Response) => {
+    const result = await eventServices.getAllRegistration()
+    sendResponse(res, { statusCode: StatusCodes.OK, message: "Registrations retrieved successfully", data: result, success: true })
+})
+
 export const eventController = {
     createEventController,
     getAllEventsController,
@@ -78,5 +83,6 @@ export const eventController = {
     verifyOtpController,
     addPlayerToEventController,
     cancelRequestController,
-    getAllCancelRequestController
+    getAllCancelRequestController,
+    getAllRegistrationController
 }

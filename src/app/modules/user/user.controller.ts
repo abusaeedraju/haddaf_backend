@@ -3,7 +3,7 @@ import catchAsync from "../../../shared/catchAsync";
 import { userServices } from "./user.service";
 import sendResponse from "../../middleware/sendResponse";
 import { StatusCodes } from "http-status-codes";
-
+import { Role } from "@prisma/client";
 
 const createUserController = catchAsync(async (req: Request, res: Response) => {
     const files = req.files as any
@@ -38,7 +38,7 @@ const getMyProfileController = catchAsync(async (req: Request, res: Response) =>
 })
 
 const getAllUserController = catchAsync(async (req: Request, res: Response) => {
-    const result = await userServices.getAllUser()
+    const result = await userServices.getAllUser(req.query.role as Role)
     sendResponse(res, { statusCode: StatusCodes.OK, message: "User retrieved successfully", data: result, success: true })
 })
 

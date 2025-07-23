@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 import ApiError from "../../error/ApiErrors";
 import { StatusCodes } from "http-status-codes";
 import { compare, hash } from "bcrypt"
@@ -138,35 +138,41 @@ const getMyProfile = async (id: string) => {
     if (!result) {
         throw new ApiError(StatusCodes.NOT_FOUND, "User not found")
     }
-   
+
     const totalBooking = await prisma.booking.count({
         where: {
             userId: id
         }
     })
 
-    return {result,totalBooking}
+    return { result, totalBooking }
 }
 
-const getAllUser = async () => {
+const getAllUser = async (role: Role) => {
     const result = await prisma.user.findMany({
+        where: {
+            role: role
+        },
         select: {
             id: true,
             name: true,
-            email: true,
-            image: true,
-            role: true,
-            certificate: true,
             phone: true,
-            dateOfBirth: true,
-            aboutMe: true,
-            yearsOfExperience: true,
-            nid: true,
-            createdAt: true,
-            updatedAt: true
+            role: true
         }
     })
-    return result
+
+    const totalUser = await prisma.user.count()
+    const totalPlayer = await prisma.user.count({
+        where: {
+            role: Role.PLAYER
+        }
+    })
+    const totalTrainer = await prisma.user.count({
+        where: {
+            role: Role.TRAINER
+        }
+    })
+    return { result, totalUser, totalPlayer, totalTrainer }
 }
 
 const getMyJoinedEvent = async (playerId: string) => {
@@ -216,5 +222,7 @@ const eventSummary = async (id: string) => {
         : 0;
     return { ...result, teamMemberCount }
 }
+
+
 
 export const userServices = { createUserIntoDB, updateUserIntoDB, changePasswordIntoDB, getMyProfile, getAllUser, getMyJoinedEvent, eventSummary }

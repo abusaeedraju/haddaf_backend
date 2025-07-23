@@ -16,5 +16,6 @@ router.post('/verify-otp', auth(), eventController.verifyOtpController)
 router.post('/add-player/:registrationId', auth(), eventController.addPlayerToEventController)
 router.post('/cancel-request/:registrationId', auth(), eventController.cancelRequestController)
 router.get('/cancel-request/all', auth(Role.ADMIN), eventController.getAllCancelRequestController)
+router.get('/registration/all', auth(Role.ADMIN), eventController.getAllRegistrationController)
 
 export const eventRoutes = router
