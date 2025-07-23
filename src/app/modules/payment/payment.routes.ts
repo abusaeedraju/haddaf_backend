@@ -4,8 +4,7 @@ import { paymentController } from "./payment.controller";
 
 const route = Router()
 
-route.post('/registration', auth(), paymentController.createPaymentForRegistrationController)
-route.post('/refund/:registrationId', auth(), paymentController.refundPaymentController)    
+route.post('/registration', auth(), paymentController.createPaymentForRegistrationController)    
 // route.post('/save-card', auth(Role.USER), paymentController.saveCardController)
 // route.get('/get-card', auth(Role.USER), paymentController.getSaveCardController)
 // route.delete('/delete-card', auth(Role.USER), paymentController.deleteCardController)

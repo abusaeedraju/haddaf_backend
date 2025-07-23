@@ -95,35 +95,60 @@ model event {
   updatedAt             DateTime       @updatedAt
   registration          registration[] @relation("eventDetails")
 }
+
 model Payment {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @db.ObjectId
-  registrationId String   @db.ObjectId @unique
-  amount        Float
-  paymentMethod String?
-  paymentId String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  registrationId String   @unique @db.ObjectId
+  amount         Float
+  paymentMethod  String?
+  paymentId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
+
+model Refund {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  registrationId String   @unique @db.ObjectId
+  amount         Float?
+  reason         String
+  paymentId      String?
+  status         refundStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model registration {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  eventId          String   @db.ObjectId
-  playerId         String   @db.ObjectId
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  eventId          String             @db.ObjectId
+  playerId         String             @db.ObjectId
   teamName         String
   teamLeaderName   String
   phone            String
-  email            String    @unique
+  email            String             @unique
   registrationCode Int
   entryFee         Float?
   teamMembers      Json?
-  isVerified       Boolean @default(false)
+  isVerified       Boolean            @default(false)
   paymentId        String?
-  isPaid           Boolean @default(false)
-  eventDetails     event    @relation("eventDetails", fields: [eventId], references: [id], onDelete: Cascade)
-  playerIdDetails  User     @relation("playerIdDetails", fields: [playerId], references: [id], onDelete: Cascade)
-  status registrationStatus @default(PENDING)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  isPaid           Boolean            @default(false)
+  eventDetails     event              @relation("eventDetails", fields: [eventId], references: [id], onDelete: Cascade)
+  playerIdDetails  User               @relation("playerIdDetails", fields: [playerId], references: [id], onDelete: Cascade)
+  status           registrationStatus @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  cancelRequest    CancelRequest[]    @relation("registrationDetails")
+}
+
+model CancelRequest {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String             @db.ObjectId
+  registrationId   String             @unique @db.ObjectId
+  reason           String
+  registrationDetails registration @relation("registrationDetails", fields: [registrationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model Review {
@@ -158,16 +183,16 @@ enum Role {
   ADMIN
 }
 
-enum OrderStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
-}
-
 enum Status {
   PENDING
   ACTIVE
   BLOCKED
+}
+
+enum refundStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
 }
 
 enum bookingStatus {

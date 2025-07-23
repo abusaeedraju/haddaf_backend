@@ -37,23 +37,24 @@ const createPaymentForRegistrationController = catchAsync(
 //   }
 // );
 
-const refundPaymentController = catchAsync(
-  async (req: Request, res: Response) => {
-    const { id: userId } = req.user;
-    const registrationId = req.params.registrationId;
-    const result = await paymentService.refundPaymentFromStripe(registrationId, userId);
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      message: "Payment refunded successfully",
-      data: result,
-      success: true,
-    });
-  }
-);
+// const refundPaymentController = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { id: userId } = req.user;
+//     const registrationId = req.params.registrationId;
+//     const result = await paymentService.refundPaymentFromStripe(registrationId, userId);
+//     sendResponse(res, {
+//       statusCode: StatusCodes.OK,
+//       message: "Payment refunded successfully",
+//       data: result,
+//       success: true,
+//     });
+//   }
+// );
+
 
 export const paymentController = {
   createPaymentForRegistrationController,
-  refundPaymentController
+  //refundPaymentController
   // createDonationController,
   // getDonationController,
   // saveCardController,

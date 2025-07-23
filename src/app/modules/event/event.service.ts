@@ -74,31 +74,31 @@ const registerForEvent = async (eventId: string, playerId: string, payload: any)
 }
 
 const verifyOtp = async (payload: { email: any; otp: number }) => {
-    const { message} = await OTPVerify(payload);
-  
+    const { message } = await OTPVerify(payload);
+
     if (message) {
-      const updateInfo = await prisma.registration.update({
-        where: {
-          email: payload.email
-        },
-        data: {
-          isVerified: true,
-        },
-        select: {
-          id: true,
-          email: true,
-          teamName: true,
-          teamLeaderName: true,
-          isVerified: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-      return updateInfo;
+        const updateInfo = await prisma.registration.update({
+            where: {
+                email: payload.email
+            },
+            data: {
+                isVerified: true,
+            },
+            select: {
+                id: true,
+                email: true,
+                teamName: true,
+                teamLeaderName: true,
+                isVerified: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        return updateInfo;
     }
-  };
-  
-  const addPlayerToEvent = async (registrationId: string, playerId: string, payload: any) => {
+};
+
+const addPlayerToEvent = async (registrationId: string, playerId: string, payload: any) => {
     const result = await prisma.registration.findUnique({ where: { id: registrationId } })
     if (!result) {
         throw new ApiError(StatusCodes.NOT_FOUND, "Registration not found")
@@ -117,8 +117,48 @@ const verifyOtp = async (payload: { email: any; otp: number }) => {
     })
     return registration
 }
+const cancelRequest = async (registrationId: string, userId: string, payload: any) => {
+    const registration = await prisma.registration.findUnique({
+        where: {
+            id: registrationId,
+            playerId: userId,
+        },
+    });
+    if (!registration) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Registration not found!");
+    }
+
+    const cancelRequest = await prisma.cancelRequest.create({
+        data: {
+            registrationId,
+            userId,
+            reason: payload.reason,
+        },
+    });
+    return cancelRequest;
+};
+
+const getAllCancelRequest = async () => {
+    const cancelRequest = await prisma.cancelRequest.findMany({
+        select: {
+            id: true,
+            userId: true,
+            reason: true,
+            createdAt: true,
+            registrationDetails: {
+                select: {
+                    id: true,
+                    teamName: true,
+                    phone: true,
+                    registrationCode: true,
+                },
+            },
+        },
+    });
+    return cancelRequest;
+};
 
 export const eventServices = {
-    createEvent, getAllEvents, getEventById, getUpcomingEvents, registerForEvent, verifyOtp, addPlayerToEvent    
+    createEvent, getAllEvents, getEventById, getUpcomingEvents, registerForEvent, verifyOtp, addPlayerToEvent, cancelRequest, getAllCancelRequest
 }
 

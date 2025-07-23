@@ -302,7 +302,6 @@ const sendInvitation = async (playerId: string, userId: string, bookingId: strin
   
   
 
-
 export const bookingServices = {
     createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation
 }

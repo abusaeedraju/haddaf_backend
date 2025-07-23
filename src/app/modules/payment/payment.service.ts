@@ -299,23 +299,23 @@ const createIntentInStripeForRegistration = async (payload: payloadType, userId:
   return transfer;
 }; */
 
- const refundPaymentFromStripe = async (registrationId: string, userId: string) => {
-  const findPayment = await prisma.payment.findUnique({
-    where: {
-      registrationId,
-      userId,
-    },
-  });
-  if (!findPayment) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Payment not found!");
-  }
+//  const refundPaymentFromStripe = async (registrationId: string, userId: string) => {
+//   const findPayment = await prisma.payment.findUnique({
+//     where: {
+//       registrationId,
+//       userId,
+//     },
+//   });
+//   if (!findPayment) {
+//     throw new ApiError(StatusCodes.NOT_FOUND, "Payment not found!");
+//   }
 
-  const payment = await stripe.refunds.create({
-    payment_intent: findPayment?.paymentId || "",
-    amount: Math.round(findPayment.amount * 100), // Amount in cents
-  });
-  return payment;
-}; 
+//   const payment = await stripe.refunds.create({
+//     payment_intent: findPayment?.paymentId || "",
+//     amount: Math.round(findPayment.amount * 100), // Amount in cents
+//   });
+//   return payment;
+// }; 
 
 // const subscribeToPlanFromStripe = async (payload: any) => {
 
@@ -402,10 +402,9 @@ const createIntentInStripeForRegistration = async (payload: payloadType, userId:
 //   return updateUserPlan;
 
 // };
-
 export const paymentService = {
   createIntentInStripeForRegistration,
-  refundPaymentFromStripe,
+  //refundPaymentFromStripe,
   // createIntentInStripeForDonation,
   // getDonation,
   // saveCardInStripe,
