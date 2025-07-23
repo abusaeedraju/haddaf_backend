@@ -28,5 +28,10 @@ route.get("/details/:bookingId", auth(), bookingController.viewBookingDetails);
 route.get("/get-friend-list", auth(Role.PLAYER), bookingController.getFriends);
 route.put("/send-invitation", auth(Role.PLAYER), bookingController.sendInvitation);
 route.put("/respond-to-invitation", auth(Role.PLAYER), bookingController.respondToInvitation);
+route.post("/refund-request/:bookingId", auth(Role.PLAYER), bookingController.refundRequestController);
+route.get("/refund-request/all", auth(Role.ADMIN), bookingController.getAllRefundRequestController);
+route.put("/refund-request/accept/:refundId", auth(Role.ADMIN), bookingController.acceptRefundRequestController);
+route.put("/refund-request/decline/:refundId", auth(Role.ADMIN), bookingController.declineRefundRequestController);
+route.get("/refund-history", auth(Role.PLAYER), bookingController.getRefundHistoryController);
 
 export const bookingRoutes = route  

@@ -135,8 +135,17 @@ const getMyProfile = async (id: string) => {
             updatedAt: true
         }
     })
+    if (!result) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "User not found")
+    }
+   
+    const totalBooking = await prisma.booking.count({
+        where: {
+            userId: id
+        }
+    })
 
-    return result
+    return {result,totalBooking}
 }
 
 const getAllUser = async () => {
@@ -190,7 +199,7 @@ const eventSummary = async (id: string) => {
             registrationCode: true,
             teamName: true,
             status: true,
-            teamMembers:true,
+            teamMembers: true,
             eventDetails: {
                 select: {
                     id: true,
@@ -203,8 +212,8 @@ const eventSummary = async (id: string) => {
         }
     })
     const teamMemberCount = Array.isArray(result?.teamMembers)
-    ? result.teamMembers.length
-    : 0;
+        ? result.teamMembers.length
+        : 0;
     return { ...result, teamMemberCount }
 }
 

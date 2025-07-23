@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes"
 import { prisma } from "../../../utils/prisma"
 import ApiError from "../../error/ApiErrors"
 import { notificationServices } from "../notifications/notification.service"
-import { inviteStatus } from "@prisma/client"
+import { inviteStatus, refundStatus } from "@prisma/client"
 
 const createBooking = async (groundId: string, userId: string, payload: any) => {
 
@@ -188,120 +188,201 @@ const getFriends = async (phone: string) => {
 }
 const sendInvitation = async (playerId: string, userId: string, bookingId: string) => {
     const player = await prisma.user.findUnique({
-      where: { id: playerId }
+        where: { id: playerId }
     });
-  
+
     if (!player) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Player not found");
+        throw new ApiError(StatusCodes.NOT_FOUND, "Player not found");
     }
-  
+
     const booking: any = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { user: true } // so you can access booking.user.name for notification
+        where: { id: bookingId },
+        include: { user: true } // so you can access booking.user.name for notification
     });
-  
+
     if (!booking || booking.userId !== userId) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found or unauthorized");
+        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found or unauthorized");
     }
-  
+
     const newPlayer = {
-      id: playerId,
-      name: player.name,
-      image: player.image,
-      phone: player.phone,
-      role: player.role,
-      status: "PENDING"
+        id: playerId,
+        name: player.name,
+        image: player.image,
+        phone: player.phone,
+        role: player.role,
+        status: "PENDING"
     };
-  
+
     let players: any[] = Array.isArray(booking.players)
-      ? booking.players
-      : typeof booking.players === "string"
-      ? JSON.parse(booking.players)
-      : [];
-  
+        ? booking.players
+        : typeof booking.players === "string"
+            ? JSON.parse(booking.players)
+            : [];
+
     const exists = players.some((p: any) => p.id === playerId);
     if (exists) {
-      return booking.players; // already invited
+        return booking.players; // already invited
     }
-  
-    players.push(newPlayer);
-  
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: { players }
-    });
-  
-    await notificationServices.sendSingleNotification(userId, playerId, {
-      title: "Match Invitation",
-      body: `You have been invited to play with your friends ${booking.user.name}`,
-      bookingId
-    });
-  
-    return booking.players;
-  };
-  
 
-  const respondToInvitation = async (
+    players.push(newPlayer);
+
+    await prisma.booking.update({
+        where: { id: bookingId },
+        data: { players }
+    });
+
+    await notificationServices.sendSingleNotification(userId, playerId, {
+        title: "Match Invitation",
+        body: `You have been invited to play with your friends ${booking.user.name}`,
+        bookingId
+    });
+
+    return booking.players;
+};
+
+
+const respondToInvitation = async (
     userId: string,
     payload: { bookingId: string; status: "ACCEPTED" | "DECLINED" }
-  ) => {
+) => {
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+        where: { id: userId }
     });
-  
+
     if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+        throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
-  
+
     const booking = await prisma.booking.findUnique({
-      where: { id: payload.bookingId }
+        where: { id: payload.bookingId }
     });
-  
+
     if (!booking) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found");
+        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found");
     }
-  
+
     let players: any[] = Array.isArray(booking.players)
-      ? booking.players
-      : typeof booking.players === "string"
-      ? JSON.parse(booking.players)
-      : [];
-  
+        ? booking.players
+        : typeof booking.players === "string"
+            ? JSON.parse(booking.players)
+            : [];
+
     // Find if player exists
     const index = players.findIndex(p => p.id === userId);
     if (index === -1) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Player not found in this booking");
+        throw new ApiError(StatusCodes.NOT_FOUND, "Player not found in this booking");
     }
-  
+
     // If ACCEPTED → update status
     if (payload.status === "ACCEPTED") {
-      players[index].status = "INVITED";
-  
-      await prisma.booking.update({
-        where: { id: payload.bookingId },
-        data: { players }
-      });
-  
-      return players[index];
+        players[index].status = "INVITED";
+
+        await prisma.booking.update({
+            where: { id: payload.bookingId },
+            data: { players }
+        });
+
+        return players[index];
     }
-  
+
     // If DECLINED → remove the player
     if (payload.status === "DECLINED") {
-      const updatedPlayers = players.filter(p => p.id !== userId);
-  
-      await prisma.booking.update({
-        where: { id: payload.bookingId },
-        data: { players: updatedPlayers }
-      });
-  
-      return {status: "DECLINED"}
+        const updatedPlayers = players.filter(p => p.id !== userId);
+
+        await prisma.booking.update({
+            where: { id: payload.bookingId },
+            data: { players: updatedPlayers }
+        });
+
+        return { status: "DECLINED" }
     }
-  
+
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid status value");
-  };
-  
-  
+};
+
+const refundRequest = async (userId: string, bookingId: string, payload: any) => {
+    const booking = await prisma.booking.findUnique({
+        where: { id: bookingId, userId, bookingCode: payload.bookingCode }
+    })
+    if (!booking) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found");
+    }
+    const refund = await prisma.refund.findUnique({
+        where: { bookingId }
+    })
+    if (refund) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Refund request already sent");
+    }
+    const refundRequest = await prisma.refund.create({
+        data: {
+            bookingId,
+            userId,
+            bookingCode: payload.bookingCode,
+            reason: payload.reason
+        }
+    })
+    return refundRequest
+};
+const getAllRefundRequest = async (status: refundStatus) => {
+    const refundRequest = await prisma.refund.findMany({
+        where: {
+            status
+        },
+        select: {
+            id: true,
+            bookingCode: true,
+            reason: true,
+            status: true,
+            createdAt: true,
+            userDetails: {
+                select: {
+                    id: true,
+                    name: true,
+                    phone: true,
+                }
+            },
+        }
+    })
+    return refundRequest
+}
+
+const acceptRefundRequest = async (refundId: string) => {
+    const refundRequest = await prisma.refund.update({
+        where: { id: refundId },
+        data: { status: "ACCEPTED" }
+    })
+    return refundRequest
+}
+const declineRefundRequest = async (refundId: string) => {
+    const refundRequest = await prisma.refund.update({
+        where: { id: refundId },
+        data: { status: "DECLINED" }
+    })
+    return refundRequest
+}
+
+const getRefundHistory = async (userId: string) => {
+    const refundRequest = await prisma.refund.findMany({
+        where: {
+            userId
+        },
+        select: {
+            id: true,
+            status: true,
+            bookingDetails: {
+                select: {
+                    date: true,
+                    startTime: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    })
+    return refundRequest
+}
 
 export const bookingServices = {
-    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation
+    createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation, refundRequest, getAllRefundRequest, acceptRefundRequest, declineRefundRequest, getRefundHistory
 }

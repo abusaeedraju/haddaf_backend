@@ -106,4 +106,61 @@ const respondToInvitation = catchAsync(async (req: any, res: any) => {
     });
 })
 
-export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation }
+const refundRequestController = catchAsync(async (req: any, res: any) => {
+    const userId = req.user.id
+    const payload = req.body
+    const bookingId = req.params.bookingId
+    const result = await bookingServices.refundRequest(userId,bookingId, payload);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Refund request sent successfully",
+        data: result,
+    });
+})
+
+const getAllRefundRequestController = catchAsync(async (req: any, res: any) => {
+    const status = req.query.status
+    const result = await bookingServices.getAllRefundRequest(status);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Refund requests retrieved successfully",
+        data: result,
+    });
+})
+
+const acceptRefundRequestController = catchAsync(async (req: any, res: any) => {
+    const refundId = req.params.refundId
+    const result = await bookingServices.acceptRefundRequest(refundId);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Refund request accepted successfully",
+        data: result,
+    });
+})
+
+const declineRefundRequestController = catchAsync(async (req: any, res: any) => {
+    const refundId = req.params.refundId
+    const result = await bookingServices.declineRefundRequest(refundId);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Refund request declined successfully",
+        data: result,
+    });
+})
+
+const getRefundHistoryController = catchAsync(async (req: any, res: any) => {
+    const userId = req.user.id
+    const result = await bookingServices.getRefundHistory(userId);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "Refund history retrieved successfully",
+        data: result,
+    });
+})
+
+export const bookingController = { createBooking, acceptBooking, declineBooking, getAllBookings, getFriends, upcomingBookings, viewBookingDetails, sendInvitation, getMyBooking, respondToInvitation, refundRequestController, getAllRefundRequestController, acceptRefundRequestController, declineRefundRequestController, getRefundHistoryController }

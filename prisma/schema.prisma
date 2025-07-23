@@ -32,6 +32,7 @@ model User {
   reviews           Review[]        @relation("userDetails")
   booking           Booking[]       @relation("userDetails")
   registration      registration[]  @relation("playerIdDetails")
+  refund            Refund[]        @relation("userDetails")
 }
 
 model Otp {
@@ -73,6 +74,7 @@ model Booking {
   updatedAt   DateTime      @updatedAt
   ground      Ground        @relation("groundDetails", fields: [groundId], references: [id], onDelete: Cascade)
   user        User          @relation("userDetails", fields: [userId], references: [id], onDelete: Cascade) // User who booked the slot
+  refund      Refund[]      @relation("bookingDetails")
 }
 
 model event {
@@ -108,15 +110,16 @@ model Payment {
 }
 
 model Refund {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String   @db.ObjectId
-  registrationId String   @unique @db.ObjectId
-  amount         Float?
-  reason         String
-  paymentId      String?
-  status         refundStatus @default(PENDING)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  bookingId   String       @unique @db.ObjectId
+  reason      String
+  bookingCode Int
+  userDetails User         @relation("userDetails", fields: [userId], references: [id], onDelete: Cascade)
+  bookingDetails Booking @relation("bookingDetails", fields: [bookingId], references: [id], onDelete: Cascade)
+  status      refundStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model registration {
@@ -142,13 +145,13 @@ model registration {
 }
 
 model CancelRequest {
-  id               String             @id @default(auto()) @map("_id") @db.ObjectId
-  userId           String             @db.ObjectId
-  registrationId   String             @unique @db.ObjectId
-  reason           String
+  id                  String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String       @db.ObjectId
+  registrationId      String       @unique @db.ObjectId
+  reason              String
   registrationDetails registration @relation("registrationDetails", fields: [registrationId], references: [id], onDelete: Cascade)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 }
 
 model Review {
@@ -191,8 +194,8 @@ enum Status {
 
 enum refundStatus {
   PENDING
-  COMPLETED
-  CANCELLED
+  ACCEPTED
+  DECLINED
 }
 
 enum bookingStatus {
