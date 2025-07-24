@@ -131,31 +131,48 @@ export const upcomingBookings = async (userId: string) => {
     return upcomingEvents;
 };
 
+type Player = {
+  image?: string;
+};
+
 const viewBookingDetails = async (bookingId: string) => {
-    const booking = await prisma.booking.findUnique({
-        where: {
-            id: bookingId
-        },
+  const booking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId
+    },
+    select: {
+      id: true,
+      date: true,
+      startTime: true,
+      bookingCode: true,
+      players: true,
+      ground: {
         select: {
-            id: true,
-            date: true,
-            startTime: true,
-            bookingCode: true,
-            ground: {
-                select: {
-                    name: true,
-                    rent: true,
-                    image: true
-                }
-            }
+          name: true,
+          rent: true,
+          image: true
         }
-    })
-    if (!booking) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found")
-    } else {
-        return booking
+      }
     }
-}
+  });
+
+  if (!booking) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Booking not found");
+  }
+
+  const playersArray = booking.players as Player[];
+
+  const playersWithImage = Array.isArray(playersArray)
+    ? playersArray.map((player) => ({
+        image: player.image
+      }))
+    : [];
+
+  return {
+    ...booking,
+    players: playersWithImage
+  };
+};
 
 
 
