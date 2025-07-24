@@ -69,6 +69,7 @@ const registerForEvent = async (eventId: string, playerId: string, payload: any)
             eventId,
             playerId,
             registrationCode,
+            entryFee: event?.entryFee
         }
     })
 
