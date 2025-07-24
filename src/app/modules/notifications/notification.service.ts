@@ -146,7 +146,21 @@ const isReadNotificationFromDB = async (id: string) => {
   if (!notification) {
     throw new ApiError(404, "No unread notifications found for the user");
   }
-
+  if ( notification.title === "Booking Accepted") {
+     const booking = await prisma.booking.findUnique({
+       where: {
+         id: notification?.bookingId as string,
+       },
+       select: {
+         id: true,
+         date: true,
+         startTime: true,
+         bookingCode: true,
+         status: true,
+       },
+     })
+     return booking;
+  }
   await prisma.notifications.update({
     where: { id: id },
     data: { read: true },

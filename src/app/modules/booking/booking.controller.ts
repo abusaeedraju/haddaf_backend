@@ -15,9 +15,10 @@ const createBooking = catchAsync(async (req: any, res: any) => {
     });
 });
 const acceptBooking = catchAsync(async (req: any, res: any) => {
+    const userId = req.user.id
     const bookingId = req.params.bookingId
     console.log(bookingId);
-    const result = await bookingServices.acceptBooking(bookingId);
+    const result = await bookingServices.acceptBooking(userId,bookingId);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -55,7 +56,8 @@ const getMyBooking = catchAsync(async (req: any, res: any) => {
     });
 })
 const upcomingBookings = catchAsync(async (req: any, res: any) => {
-    const result = await bookingServices.upcomingBookings();
+    const userId = req.user.id
+    const result = await bookingServices.upcomingBookings(userId);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

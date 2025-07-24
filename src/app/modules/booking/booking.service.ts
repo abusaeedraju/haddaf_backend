@@ -27,7 +27,7 @@ const createBooking = async (groundId: string, userId: string, payload: any) => 
         throw new ApiError(StatusCodes.BAD_REQUEST, "Ground is already booked this time, please choose another time")
     }
 }
-const acceptBooking = async (bookingId: string) => {
+const acceptBooking = async (userId: string, bookingId: string) => {
     console.log(bookingId);
     const isBooking = await prisma.booking.findUnique({
         where: {
@@ -49,6 +49,12 @@ const acceptBooking = async (bookingId: string) => {
             data: {
                 status: "BOOKED"
             }
+        })
+
+        await notificationServices.sendSingleNotification(userId, isBooking.userId, {
+            title: "Booking Accepted",
+            body: "Your booking has been accepted",
+            bookingId: bookingId
         })
         return booking
     }
@@ -88,8 +94,11 @@ const getMyBooking = async (userId: string) => {
     return booking
 }
 
-export const upcomingBookings = async () => {
+export const upcomingBookings = async (userId: string) => {
     const allBookings = await prisma.booking.findMany({
+        where: {
+            userId
+        },
         select: {
             id: true,
             date: true,

@@ -29,8 +29,10 @@ const getUpcomingEvents = async () => {
             id: true,
             eventName: true,
             tournamentStartDate: true,
+            lastDayOfRegistration: true,
             createdAt: true,
             updatedAt: true,
+            groundImage: true
         }
     });
 
